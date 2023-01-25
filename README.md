@@ -60,7 +60,7 @@ I have implemented the above described logic. The AI now is capable of reaching 
 
 ```
 
-The AI has filled in several squares (10 to be exact), but cannot reach a definite conclusion in this situation. If I had to solve this puzzle, I would (hopefully) notice sqaures A and B. In box 4 (left middle box), there obviously needs to be a 2 and a 5. Both 2 and 5 can ONLY go in either A or B. This means that no OTHER number can go in A or B, allowing you to make conclusions, including that an 8 is played at C. 
+The AI has filled in several squares (10 to be exact), but cannot reach a definite conclusion in this situation. If I had to solve this puzzle, I would (hopefully) notice squares A and B. In box 4 (left middle box), there obviously needs to be a 2 and a 5. Both 2 and 5 can ONLY go in either A or B. This means that no OTHER number can go in A or B, allowing you to make conclusions, including that an 8 is played at C. 
 
 This is the next step I want to take to make my AI smarter. I expect this to be a significant challenge, but I have some ideas on how to implement this. Like always, feel free to suggest improvements to my current code or ideas for my next challenge. 
 
