@@ -43,8 +43,33 @@ def getBoxNum(self, row, col):
   # returns the box number that (row, col) is within
   # returns -1 if (row, col) is invalid
   
-
+def getPossibleNums(self, row, col):
+  # returns a list of the possible numbers that could be placed at (row, col)
   
+def getPossibleRows(self, num, boxNum):
+  # returns a list of the possible rows within box boxNum that num could be placed at 
+  
+def getPossibleCols(self, num, boxNum):
+  # returns a list of the possible columns within box boxNum that num could be placed at 
+
+def getPossiblePlacement(self, num, boxNum):
+  # returns a list of tuples of (row, col) where num can be placed at within box boxNum
+  
+def solveCell(self, row, col):
+   # attempts to find a solution for row, col
+   # if it cannot find a solution, it will look for other solutions within whatever box (row, col) is in
+   # returns whatever number it places
+   
+def solveBoard(self):
+  # attempts to solve the board using logic
+  # if the logic is not enough to solve, it will make guesses
+  # returns either the solved board or None if it fails
+  
+def make_guess(self, row, col, num, board):
+  # driver code for making a guess
+  # makes a guess of placing num at (row, col)
+  # makes a copy of the board in case it is incorrect
+  # returns either the solved board or None if it fails
 ```
 
 At the moment, my AI can solve easy or medium ranked puzzles(the scale coming from a sudoku book I have), but when it comes to hard or expert puzzles, it hits a roadblock. The code is functional with the caveat that it isn't realistic on your average computer. 
