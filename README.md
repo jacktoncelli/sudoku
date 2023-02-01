@@ -7,6 +7,46 @@ An AI to solve sudoku puzzles
 
 I undertook this as a personal project for fun. I don't have very much experience building AIs, but I thought sudoku would be a simple enough example that I could handle it. I also wanted to try out a bigger project with Python, as I use primarily Java for other personal projects. 
 
+Here is a summary of my code's current methods:
+
+```python
+def print_board(self):
+  # prints the current board nicely formatted
+  # has no return value
+  
+def solved(self):
+  # returns True if the board is full and correctly solved
+  
+def correct(self):
+  # returns True if the board follows all the rules of sudoku
+  
+def checkCol(self, col):
+  # 0 <= col <= 8
+  # returns a list of the numbers not present in col
+  
+def checkRow(self, row):
+  # 0 <= row <= 8
+  # returns a list of numbers not present in row
+
+def checkBox(self, boxNum):
+  # 0 <= boxNum <= 8
+  # returns a list of numbers not present in the box boxNum
+  
+def common_member(self, a, b):
+  # a and b are two lists
+  # returns a new list of numbers found in both a and b
+  
+def canPlace(self, row, col, cell):
+  # returns True if cell can legally be placed at (row, col)
+  
+def getBoxNum(self, row, col):
+  # returns the box number that (row, col) is within
+  # returns -1 if (row, col) is invalid
+  
+
+  
+```
+
 At the moment, my AI can solve easy or medium ranked puzzles(the scale coming from a sudoku book I have), but when it comes to hard or expert puzzles, it hits a roadblock. The code is functional with the caveat that it isn't realistic on your average computer. 
 
 My algorithm isn't able to make enough conclusions using the information availible, so it is forced to make guesses, which pulls it into the rabbit hole of sudoku's 6 sextillion possible boards. Put briefly, when unable to make a guarenteed move, the program will test out a number at a position to see if the puzzle can be solved with that position. This test only leads to more positions where it cannot make a definite conclusion, and so it guesses again, ad infinitem until it either breaks the rules of sudoku or finds a solution. Logically, this approach guarentees success, but you would probably need a quantum computer or portion of America's defense budget to support the memory usage. My laptop doesn't even scratch the surface. Of course, my algorithm is only making educated guesses, but even if it narrows the combinations down to a few quadrillion, thats not much better. 
