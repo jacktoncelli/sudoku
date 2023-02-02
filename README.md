@@ -106,6 +106,8 @@ My goal is to eliminate the need to guess altogether by building up the logic. N
 
 ### Update January 24, 2023
 
+At the moment the AI is forced to make 4-5 guesses on expert puzzles and 2-3 guesses on hard puzzles. These are resolved fairly quickly due to the upgraded logical capabilities, but my goal is still to never have to guess. 
+
 I have implemented the above described logic. The AI now is capable of reaching conclusions given information such as the board above. However, it still gets stuck sometimes and is forced to guess. The guess is also more likely to succeed, because conclusions are drawn much more reliably. At the board below, the AI had to guess, but was able to find a solution fairly quickly. Here is an example:
 
 ```md
@@ -126,6 +128,8 @@ I have implemented the above described logic. The AI now is capable of reaching 
 ```
 
 The AI has filled in several squares (10 to be exact), but cannot reach a definite conclusion in this situation. If I had to solve this puzzle, I would (hopefully) notice squares A and B. In box 4 (left middle box), there obviously needs to be a 2 and a 5. Both 2 and 5 can ONLY go in either A or B. This means that no OTHER number can go in A or B, allowing you to make conclusions, including that an 8 is played at C. 
+
+I have alos thought of a new way to test my AI. I give it a completely empty board and have it try to solve it. The smaller number of guesses, the more powerful the logical capabilites are. With the current logic, the code ran for about 10 minutes with thousands of guesses before I gave up on getting a real answer (I remebered the scary 6 sextillion number, even though it will solve it in theory) 
 
 This is the next step I want to take to make my AI smarter. I expect this to be a significant challenge, but I have some ideas on how to implement this. Like always, feel free to suggest improvements to my current code or ideas for my next challenge. 
 
