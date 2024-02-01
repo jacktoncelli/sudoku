@@ -1,5 +1,5 @@
 # sudoku
-An AI to solve sudoku puzzles
+An AI using an inference loop to solve sudoku puzzles
 
 ----------------
 
