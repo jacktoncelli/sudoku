@@ -17,6 +17,20 @@ class SudokuSolver:
         """
         self.board.print_board()
         
+    def get_square(self, row, col):
+        """
+        Get the current number at board[row][col]
+        
+        Parameters:
+        row(int) - 0 <= row <= 8
+        col(int) - 0 <= col <= 8
+        
+        Returns:
+        square(int) - the current number at board[row][col], where 0 is an empty square
+        
+        """
+        return self.board.get_square(row=row, col=col)
+            
     def horizontally_adjacent_boxes(self, boxNum):
         """
         Given a box number, will return the box numbers of the horizontally adjacent boxes

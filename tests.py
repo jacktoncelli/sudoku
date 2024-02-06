@@ -235,27 +235,83 @@ class TestSudokuSolverMethods(unittest.TestCase):
     ex_board = SudokuBoard(board_array)
     ex_solver = SudokuSolver(ex_board)
     
+    def test_horizontally_adjacent_boxes(self):
+        self.assertEqual(self.ex_solver.horizontally_adjacent_boxes(0), (1, 2))
+        self.assertEqual(self.ex_solver.horizontally_adjacent_boxes(1), (0, 2))
+        self.assertEqual(self.ex_solver.horizontally_adjacent_boxes(2), (0, 1))
+        self.assertEqual(self.ex_solver.horizontally_adjacent_boxes(3), (4, 5))
+        self.assertEqual(self.ex_solver.horizontally_adjacent_boxes(4), (3, 5))
+        self.assertEqual(self.ex_solver.horizontally_adjacent_boxes(5), (3, 4))
+        self.assertEqual(self.ex_solver.horizontally_adjacent_boxes(6), (7, 8))
+        self.assertEqual(self.ex_solver.horizontally_adjacent_boxes(7), (6, 8))
+        self.assertEqual(self.ex_solver.horizontally_adjacent_boxes(8), (6, 7))
     
+    def test_vertically_adjacent_boxes(self):
+        self.assertEqual(self.ex_solver.vertically_adjacent_boxes(0), (3, 6))
+        self.assertEqual(self.ex_solver.vertically_adjacent_boxes(1), (4, 7))
+        self.assertEqual(self.ex_solver.vertically_adjacent_boxes(2), (5, 8))
+        self.assertEqual(self.ex_solver.vertically_adjacent_boxes(3), (0, 6))
+        self.assertEqual(self.ex_solver.vertically_adjacent_boxes(4), (1, 7))
+        self.assertEqual(self.ex_solver.vertically_adjacent_boxes(5), (2, 8))
+        self.assertEqual(self.ex_solver.vertically_adjacent_boxes(6), (0, 3))
+        self.assertEqual(self.ex_solver.vertically_adjacent_boxes(7), (1, 4))
+        self.assertEqual(self.ex_solver.vertically_adjacent_boxes(8), (2, 5))
+    
+    def test_solve_square(self):
+        temp_solver = SudokuSolver(SudokuBoard(copy.deepcopy(self.board_array)))
+        
+        update_4_6 = temp_solver.solve_square(row=4, col=6)
+        self.assertFalse(update_4_6)
+        # it should not be able to solve the (4, 6) square using standard logic
+        
+        update_0_1 = temp_solver.solve_square(row=0, col=1)
+        self.assertFalse(update_0_1)
+        
+        update_0_2 = temp_solver.solve_square(row=0, col=2)
+        self.assertFalse(update_0_2)
+        
+        update_5_1 = temp_solver.solve_square(row=5, col=1)
+        self.assertTrue(update_5_1)
+        self.assertEqual(temp_solver.get_square(row=5, col=1), 2)
+        # it can update the (5, 1) square to 2 using standard logic
+        
+        update_5_0 = temp_solver.solve_square(row=5, col=0)
+        self.assertTrue(update_5_0)
+        self.assertEqual(temp_solver.get_square(row=5, col=0), 6)
+        
+        update_3_0 = temp_solver.solve_square(row=3, col=0)
+        self.assertTrue(update_3_0)
+        self.assertEqual(temp_solver.get_square(row=3, col=0), 8)
+        
+        update_3_4 = temp_solver.solve_square(row=3, col=4)
+        self.assertTrue(update_3_4)
+        self.assertEqual(temp_solver.get_square(row=3, col=4), 4)
+        
+    def test_solve_box_row_column_elimination(self):
+        temp_solver = SudokuSolver(SudokuBoard(copy.deepcopy(self.board_array)))
+        
+        # using row/column elimination, it can fill in 2 squares in box 0
+        update_box_0 = temp_solver.solve_box_row_column_elimination(boxNum=0)
+        self.assertTrue(update_box_0)
+        self.assertEqual(temp_solver.get_square(row=0, col=2), 8)
+        self.assertEqual(temp_solver.get_square(row=2, col=2), 6)
+        
+        # it can fill in 1 square in box 1
+        update_box_1 = temp_solver.solve_box_row_column_elimination(boxNum=1)
+        self.assertTrue(update_box_1)
+        self.assertEqual(temp_solver.get_square(row=0, col=5), 2)
+        
+        # it can fill in 2 squares in box 2
+        update_box_2 = temp_solver.solve_box_row_column_elimination(boxNum=2)
+        self.assertTrue(update_box_2)
+        self.assertEqual(temp_solver.get_square(row=1, col=7), 8)
+        self.assertEqual(temp_solver.get_square(row=2, col=8), 2)
+        
+        # it can fill in 1 squares in box 3
+        update_box_3 = temp_solver.solve_box_row_column_elimination(boxNum=3)
+        self.assertTrue(update_box_3)
+        self.assertEqual(temp_solver.get_square(row=5, col=1), 2)
+        
     
 if __name__ == '__main__':
     unittest.main()
-    
-"""
-horizontally_adjacent_boxes(self, boxNum)
-
-Purpose: Given a box number, returns the box numbers of the horizontally adjacent boxes.
-vertically_adjacent_boxes(self, boxNum)
-
-Purpose: Given a box number, returns the box numbers of the vertically adjacent boxes.
-solve_square(self, row, col)
-
-Purpose: Given a row and column, tries to solve the square in the puzzle at self.board[row][col]. Will leave as 0 if not currently able to.
-solve_box_row_column_elimination(self, boxNum)
-
-Purpose: Given a box number from 0-8, tries to solve each unsolved square in the box using row/column elimination logical inference. Will leave unsolved squares as 0.
-solve_box(self, boxNum)
-
-Purpose: Given a box number from 0-8, tries to solve each unsolved square in the box. Will leave unsolved squares as 0.
-solve_board(self)
-
-Purpose: Attempts to solve the entire puzzle using an inference loop, calling solve_box until no further changes are made. Prints the starting board, final state of the board, and the number of calls to solve_square and solve_box."""
