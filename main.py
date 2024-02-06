@@ -1,5 +1,3 @@
-from OldSudokuSolver import OldSudokuSolver
-
 from SudokuBoard import SudokuBoard
 from SudokuSolver import SudokuSolver
 
