@@ -1,315 +1,268 @@
-import copy
-
-
 class SudokuSolver:
-
+    calls_to_solve_square = 0
+    calls_to_solve_box = 0
+    
     def __init__(self, board):
+        """
+        Intializes a new SudokuSolver instance
+        
+        Parameters:
+        board(SudokuBoard) - the puzzle to be solved
+        """
         self.board = board
-        self.boxKey = [(0, 0), (0, 3), (0, 6), (3, 0), (3, 3), (3, 6), (6, 0), (6, 3), (6, 6)]
-
-        box1 = [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2), (2, 0), (2, 1), (2, 2)]
-        box2 = [(0, 3), (0, 4), (0, 5), (1, 3), (1, 4), (1, 5), (2, 3), (2, 4), (2, 5)]
-        box3 = [(0, 6), (0, 7), (0, 8), (1, 6), (1, 7), (1, 8), (2, 6), (2, 7), (2, 8)]
-
-        box4 = [(3, 0), (3, 1), (3, 2), (4, 0), (4, 1), (4, 2), (5, 0), (5, 1), (5, 2)]
-        box5 = [(3, 3), (3, 4), (3, 5), (4, 3), (4, 4), (4, 5), (5, 3), (5, 4), (5, 5)]
-        box6 = [(3, 6), (3, 7), (3, 8), (4, 6), (4, 7), (4, 8), (5, 6), (5, 7), (5, 8)]
-
-        box7 = [(6, 0), (6, 1), (6, 2), (7, 0), (7, 1), (7, 2), (8, 0), (8, 1), (8, 2)]
-        box8 = [(6, 3), (6, 4), (6, 5), (7, 3), (7, 4), (7, 5), (8, 3), (8, 4), (8, 5)]
-        box9 = [(6, 6), (6, 7), (6, 8), (7, 6), (7, 7), (7, 8), (8, 6), (8, 7), (8, 8)]
-
-        self.boxRef = [box1, box2, box3, box4, box5, box6, box7, box8, box9]
-
-        # [(horizontal), (vertical)]
-        box1adj = [(1, 2), (3, 6)]
-        box2adj = [(0, 2), (4, 7)]
-        box3adj = [(0, 1), (5, 8)]
-        box4adj = [(4, 5), (0, 6)]
-        box5adj = [(3, 5), (1, 7)]
-        box6adj = [(3, 4), (2, 8)]
-        box7adj = [(7, 8), (0, 3)]
-        box8adj = [(6, 8), (1, 4)]
-        box9adj = [(6, 7), (2, 5)]
-
-        self.adjBoxKey = [box1adj, box2adj, box3adj, box4adj, box5adj, box6adj, box7adj, box8adj, box9adj]
-
+    
     def print_board(self):
-        for row in range(0, 9):
-            for col in range(0, 9):
-                if (col) % 3 == 0:
-                    print("   ", self.board[row][col], end=" ")
-                else:
-                    print("", self.board[row][col], end=" ")
-                if (row + 1) % 3 == 0 and col == 8:
-                    print("\n")
-            print()
+        """
+        Prints a user-friendly text representation of the current board
+        """
+        self.board.print_board()
+        
+    def horizontally_adjacent_boxes(self, boxNum):
+        """
+        Given a box number, will return the box numbers of the horizontally adjacent boxes
+        Note: this includes all boxes at the same horizontal level, 
+        for example, horizontally_adjacent_boxes(0) => (1, 2)
+        
+        Parameters:
+        boxNum(int) - 0 <= boxNum <= 8, where 0 is top left box, 8 is bottom right box, and box number increments left-right first
+        
+        Returns:
+        h_adj_boxNums((int, int)) - the box numbers of the two horizontally adjacent boxes
+        """
+        h_adj_box_key = [
+            (1, 2), 
+            (0, 2), 
+            (0, 1), 
+            (4, 5), 
+            (3, 5), 
+            (3, 4), 
+            (7, 8), 
+            (6, 8), 
+            (6, 7)
+        ]
+        return h_adj_box_key[boxNum]
+    
+    def vertically_adjacent_boxes(self, boxNum):
+        """
+        Given a box number, will return the box numbers of the vertically adjacent boxes
+        Note: this includes all boxes at the same vertical level, 
+        for example, vertcally_adjacent_boxes(0) => (3, 6)
+        
+        Parameters:
+        boxNum(int) - 0 <= boxNum <= 8, where 0 is top left box, 8 is bottom right box, and box number increments left-right first
+        
+        Returns:
+        v_adj_boxNums((int, int)) - the box numbers of the two horizontally adjacent boxes
+        """
+        v_adj_box_key = [
+            (3, 6), 
+            (4, 7), 
+            (5, 8), 
+            (0, 6), 
+            (1, 7), 
+            (2, 8), 
+            (0, 3), 
+            (1, 4), 
+            (2, 5)
+        ]
+        return v_adj_box_key[boxNum]
+        
+        
+    def solve_square(self, row, col):
+        """
+        Given a row and column, tries to solve the square in the puzzle 
+        at self.baord[row][col]. Will leave as 0 if not currently able to.
+        
+        Parameters:
+        row(int) - 0 <= row <= 8
+        col(int) - 0 <= col <= 8
+        
+        Returns:
+        updated(boolean) - True if a solution was found, False otherwise
+        """
+        self.calls_to_solve_square += 1
+        
+        if self.board.get_square(row, col) != 0:
+            return False
+       
+        possible_vals = self.board.possible_values(row, col)
+        
+        updated = False
+        
+        if len(possible_vals) == 1:
+            self.board.change_square(row=row, col=col, newVal=possible_vals[0])
+            updated = True
+            
+        return updated
+    
+    def solve_box_row_column_elimination(self, boxNum):
+        """
+        Given a box number from 0-8, tries to solve each unsolved sqaure in the box
+        using row/column elimination logical inference
+        Will leave unsolved squares as 0.
+        
+        Parameters:
+        boxNum(int) - 0 <= boxNum <= 8, where 0 is top left box, 8 is bottom right box, and box number increments left-right first
+        
+        Returns:
+        updated(boolean) - True if any changes were made, false otherwise
+        """
+        
+        updated = True
 
-    def solved(self):
-        # returns True if the board both full and correctly solved
-        for row in self.board:
-            for cell in row:
-                if cell == 0:
-                    return False
-        return self.correct();
-
-    def correct(self):
-        # returns True if the board does not break any rules
-        foundNums = set()
-
-        # check each box for repeats
-        for (r, c) in self.boxKey:
-            for row in range(r, r + 3):
-                for col in range(c, c + 3):
-                    if self.board[row][col] not in foundNums and self.board[row][col] != 0:
-                        foundNums.add(self.board[row][col])
-                    elif self.board[row][col] in foundNums:
-                        return False
-            foundNums.clear()
-
-        # check each row for repeats
-        foundNums.clear()
-        for row in self.board:
-            for cell in row:
-                if cell not in foundNums and cell != 0:
-                    foundNums.add(cell)
-                elif cell in foundNums:
-                    return False
-            foundNums.clear()
-
-        # check each column for repeats
-        foundNums.clear()
-        for col in range(0, 9):
-            for row in range(0, 9):
-                if self.board[row][col] not in foundNums and self.board[row][col] != 0:
-                    foundNums.add(self.board[row][col])
-                elif self.board[row][col] in foundNums:
-                    return False
-            foundNums.clear()
-
-        return True
-
-    def checkCol(self, col):
-        # returns the missing numbers from a column
-        foundNums = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-
-        for row in range(0, 9):
-            if self.board[row][col] in foundNums:
-                foundNums.remove(self.board[row][col])
-
-        # if len(foundNums) == 0:
-        #     return None
-        return foundNums
-
-    def checkRow(self, row):
-        # returns the missing numbers from a row
-        foundNums = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-
-        for cell in self.board[row]:
-            if cell in foundNums:
-                foundNums.remove(cell)
-
-        # if len(foundNums) == 0:
-        #     return None
-        return foundNums
-
-    def checkBox(self, boxNum):
-        # returns the missing numbers from a box
-        box = self.boxKey[boxNum]
-        foundNums = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-
-        for row in range(box[0], box[0] + 3):
-            for col in range(box[1], box[1] + 3):
-                if self.board[row][col] in foundNums:
-                    foundNums.remove(self.board[row][col])
-
-        # if len(foundNums) == 0:
-        #     return None
-        return foundNums
-
-    def common_member(self, a, b):
-        result = [i for i in a if i in b]
-        return result
-
-    def canPlace(self, row, col, cell):
-        # returns True if it is possible to play cell at position (row, col)
-        tempBoard = copy.deepcopy(self.board)
-
-        if tempBoard[row][col] == 0:
-            tempBoard[row][col] = cell
-            ss = SudokuSolver(tempBoard)
-            return ss.correct()
-
-        return False
-
-    def getBoxNum(self, row, col):
-        # returns the number of the box based on the row and col
-        # returns -1 if invalid
-        boxNum = -1
-        for i in range(0, 9):
-            if (row, col) in self.boxRef[i]:
-                boxNum = i
-        return boxNum
-
-    def getPossibleNums(self, row, col):
-        # returns the possible numbers that could go in (row, col)
-        missingRow = self.checkRow(row)
-        missingCol = self.checkCol(col)
-        missingBox = self.checkBox(self.getBoxNum(row, col))
-        common = self.common_member(missingRow, missingCol)
-        return self.common_member(common, missingBox)
-
-    def getPossibleRows(self, num, boxNum):
-        possibleRows = []
-        if num in self.checkBox(boxNum):
-            for row in range(self.boxKey[boxNum][0], self.boxKey[boxNum][0] + 3):
-                for col in range(self.boxKey[boxNum][1], self.boxKey[boxNum][1] + 3):
-                    if self.canPlace(row, col, num) and row not in possibleRows:
-                        possibleRows.append(row)
-        return possibleRows
-
-    def getPossibleCols(self, num, boxNum):
-        possibleCols = []
-        if num in self.checkBox(boxNum):
-            for row in range(self.boxKey[boxNum][0], self.boxKey[boxNum][0] + 3):
-                for col in range(self.boxKey[boxNum][1], self.boxKey[boxNum][1] + 3):
-                    if self.canPlace(row, col, num) and col not in possibleCols:
-                        possibleCols.append(col)
-        return possibleCols
-
-    def getPossiblePlacement(self, num, boxNum):
-        box = self.boxKey[boxNum]
-        possiblePlacement = []
-        for bRow in range(box[0], box[0] + 3):
-            for bCol in range(box[1], box[1] + 3):
-                if self.canPlace(bRow, bCol, num) and (bRow, bCol) not in possiblePlacement:
-                    possiblePlacement.append((bRow, bCol))
-        return possiblePlacement
-
-    def solveCell(self, row, col):
-        # returns a number [1, 9] if it finds a definite solution
-        # otherwise returns None
-
-        # first determine which box the cell is in
-        # this also shows if row and col are valid
-        boxNum = self.getBoxNum(row, col)
-
-        if boxNum != -1 and self.board[row][col] == 0:
-            # if it is a valid row and col
-
-            # check if the cell is the last in a row
-            missingRow = self.checkRow(row)
-            if len(missingRow) == 1:
-                self.board[row][col] = missingRow[0]
-                return missingRow[0]
-
-            # checks if the cell is the last in a column
-            missingCol = self.checkCol(col)
-            if len(missingCol) == 1:
-                self.board[row][col] = missingCol[0]
-                return missingCol[0]
-
-            # checks if the cell is the last in a box
-            missingBox = self.checkBox(boxNum)
-            if len(missingBox) == 1:
-                self.board[row][col] = missingBox[0]
-                return missingBox[0]
-
-            # otherwise, finds the numbers it could be
-            # by finding the numbers common to the row, col, and box
-            common = self.common_member(missingRow, missingCol)
-            possibleNums = self.common_member(common, missingBox)
-
-            # if only one possibility, it is solved
-            if len(possibleNums) == 1:
-                self.board[row][col] = possibleNums[0]
-                # print(self.board[row][col], "success")
-                return possibleNums[0]
-            else:
-                # otherwise, check if there is a number that can only be placed at (row, col)
-                box = self.boxKey[boxNum]
-                defNum = copy.deepcopy(possibleNums)
-                for num in possibleNums:
-                    # check if there is a number that can only be placed there
-                    for bRow in range(box[0], box[0] + 3):
-                        for bCol in range(box[1], box[1] + 3):
-                            if self.canPlace(bRow, bCol, num) and (bRow, bCol) != (row, col) and num in defNum:
-                                defNum.remove(num)
-                # print("defNum", defNum)
-                if len(defNum) == 1:
-                    self.board[row][col] = defNum[0]
-                    return defNum[0]
-
-            for num in possibleNums:
-                possiblePlacement = self.getPossiblePlacement(num, boxNum)
-                # print("num:", num, " possiblePlacement:", possiblePlacement)
-                for hBoxNum in self.adjBoxKey[boxNum][0]:
-                    hRow = self.getPossibleRows(num, hBoxNum)
-
-                    if len(hRow) == 1:
-                        toRemove = []
-                        for i in range(0, len(possiblePlacement)):
-                            if len(possiblePlacement) > 0 and possiblePlacement[i][0] == hRow[0]:
-                                toRemove.append(possiblePlacement[i])
-                        for i in range(0, len(toRemove)):
-                            possiblePlacement.remove(toRemove[i])
-
-                for vBoxNum in self.adjBoxKey[boxNum][1]:
-                    vCol = self.getPossibleCols(num, vBoxNum)
-                    if len(vCol) == 1:
-                        toRemove = []
-                        for i in range(0, len(possiblePlacement)):
-                            if len(possiblePlacement) > 0 and possiblePlacement[i][1] == vCol[0]:
-                                toRemove.append(possiblePlacement[i])
-                        for i in range(0, len(toRemove)):
-                            possiblePlacement.remove(toRemove[i])
-                if len(possiblePlacement) == 1:
-                    # print("making inferences")
-                    self.board[possiblePlacement[0][0]][possiblePlacement[0][1]] = num
-                    return num
-
-        # if it finds no definite solution, returns None
-        return None
-
-    def solveBoard(self):
-        while not self.solved():
-            tempBoard = copy.deepcopy(self.board)
-            for row in range(0, 9):
-                for col in range(0, 9):
-                    a = self.solveCell(row, col)
-                    if a is not None:
-                        print("(", row, ",", col, "):", a)
-            if not self.correct():
-                print("error solving")
-                self.print_board()
-                return None
-            elif tempBoard == self.board and not self.solved():
-                print("unable to solve - too difficult")
-                print("this is as far as I got:")
-                self.print_board()
-                print("I am going to have to guess!")
-
-                x = input()
-                for row in range(0, 9):
-                    for col in range(0, 9):
-                        if self.board[row][col] == 0:
-                            for num in self.getPossibleNums(row, col):
-                                print("making a guess: (", row, ",", col, "):", num)
-
-                                guess = self.make_guess(row, col, num, tempBoard)
-
-                                if guess is not None:
-                                    print("found a solution")
-                                    self.board = guess
-                                    return self.board
-                return None
+        missing_nums = self.board.missing_from_box(boxNum)
+        
+        
+        while updated and self.board.valid() and not self.board.solved():
+            updated = False
+            for num in missing_nums:
+                possible_placements = self.board.possible_placements_in_box(num=num, boxNum=boxNum)
+                
+                horiz_adj_boxes = self.horizontally_adjacent_boxes(boxNum=boxNum)
+                # row elimination
+                
+                # first eliminate the definite rows from possible_placements
+                for h_adj_box in horiz_adj_boxes:
+                    possible_rows_other = self.board.possible_row_placements_in_box(num=num, boxNum=h_adj_box)
+                    
+                    # then it is known that in another box, num will go in this row, so it cannot go there in this box
+                    if len(possible_rows_other) == 1:
+                        for (possible_row, possible_col) in possible_placements:
+                            to_remove = []
+                            if len(possible_placements) > 0 and possible_row == possible_rows_other[0]:
+                                to_remove.append((possible_row, possible_col))
+                            for i in range(len(to_remove)):
+                                possible_placements.remove(to_remove[i])
+                        
+                possible_rows_horiz = set()
+                # in case the other two rows have narrowed the certainty down to two rows total, 
+                # that would want to be removed form possible_placements as well
+                for h_adj_box in horiz_adj_boxes:
+                    possible_rows_horiz = possible_rows_horiz.union(
+                        self.board.possible_row_placements_in_box(num=num, boxNum=h_adj_box))
+                    
+                possible_rows_horiz = list(possible_rows_horiz)
+                # if there were 3 possible rows in the other two boxes, 
+                # no conclusions would be able to be drawn
+                if len(possible_rows_horiz) != 3:
+                    # remove the coordinates from possible_placements in the rows 
+                    # that match the possible rows of the horizontally adjacent boxes
+                    for removable_row in possible_rows_horiz:
+                        to_remove = []
+                        for (possible_row, possible_col) in possible_placements:
+                            if len(possible_placements) > 0 and possible_row == removable_row:
+                                to_remove.append((possible_row, possible_col))
+                        for i in range(len(to_remove)):
+                            
+                            possible_placements.remove(to_remove[i])
+                            
+                # column elimination
+                vert_adj_boxes = self.vertically_adjacent_boxes(boxNum=boxNum)
+                
+                # first eliminate the definite columns from possible_placements
+                for v_adj_box in vert_adj_boxes:
+                    possible_cols_other = self.board.possible_col_placements_in_box(num=num, boxNum=h_adj_box)
+                    
+                    # then it is known that in another box, num will go in this col, so it cannot go there in this box
+                    if len(possible_cols_other) == 1:
+                        for (possible_row, possible_col) in possible_placements:
+                            to_remove = []
+                            if len(possible_placements) > 0 and possible_col == possible_cols_other[0]:
+                                to_remove.append((possible_row, possible_col))
+                            for i in range(len(to_remove)):
+                                possible_placements.remove(to_remove[i])
+                
+                possible_cols_vert = set()
+                # find the possible columns for num in the vertically adjacent boxes
+                for v_adj_box in vert_adj_boxes:
+                    possible_cols_vert = possible_cols_vert.union(
+                        self.board.possible_col_placements_in_box(num=num, boxNum=v_adj_box)
+                    )
+                    
+                possible_cols_vert = list(possible_cols_vert)
+                # if there were 3 possible columns in the vertically adjacent boxes
+                # then no conclusions can be drawn
+                if len(possible_cols_vert) != 3:
+                    # remove the coordinates from possible_placements in the columns
+                    # that match the possible columns of the horizontally adjacent boxes
+                    for removeable_col in possible_cols_vert:
+                        to_remove = []
+                        for (possible_row, possible_col) in possible_placements:
+                            if len(possible_placements) > 0 and possible_col == removeable_col:
+                                to_remove.append((possible_row, possible_col))
+                        for i in range(len(to_remove)):
+                            possible_placements.remove(to_remove[i])
+                            
+                # if there is only one remaining possible placement for num, 
+                # then a unique solution has been found and the square can be updated
+                if len(possible_placements) == 1:
+                    self.board.change_square(row=possible_placements[0][0], col=possible_placements[0][1], newVal=num)
+                    updated = True
+            
+            return updated
+        
+    def solve_box(self, boxNum):
+        """
+        Given a box number from 0-8, tries to solve each unsolved sqaure in the box
+        Will leave unsolved squares as 0
+        
+        Parameters:
+        boxNum(int) - 0 <= boxNum <= 8, where 0 is top left box, 8 is bottom right box, and box number increments left-right first
+        
+        Returns:
+        updated(boolean) - True if any changes were made, false otherwise
+        """
+        self.calls_to_solve_box += 1
+        
+        updated = False
+        
+        standard_logic_updated = True
+        
+        (top_left_row, top_left_col) = self.board.top_left_of_box(boxNum)
+        
+        while standard_logic_updated and self.board.valid() and not self.board.solved():
+            # while updates are still being made and the board is neither invalid nor solved:
+            standard_logic_updated = False
+            for row in range(top_left_row, top_left_row + 3):
+                for col in range(top_left_col, top_left_col + 3):
+                    # try to solve each square in the box using conventional methods
+                    update_square = self.solve_square(row, col)
+                    if update_square:
+                        updated = True
+                        standard_logic_updated = True
+        
+        self.solve_box_row_column_elimination(boxNum=boxNum)
+                    
+        return updated
+    
+    def solve_board(self):
+        """
+        Attempts to solve the entire puzzle using an inference loop, 
+        where it will call solve_box until no further changes are made
+        
+        Will print the starting board and the final state of the board 
+        after all logic has been applied. 
+        
+        """
+        print("Starting board:")
         self.print_board()
-        return self.board
-
-    def make_guess(self, row, col, num, board):
-        tempBoard = copy.deepcopy(board)
-        tempBoard[row][col] = num
-        ss = SudokuSolver(tempBoard)
-
-
-        return ss.solveBoard()
+        
+        updated = True
+        
+        while updated and self.board.valid() and not self.board.solved():
+            updated = False
+            for boxNum in range(0, 9):
+                update_box = self.solve_box(boxNum)
+                if update_box:
+                    updated = True
+                
+                    
+        if not self.board.valid():
+            print("Invalid board")
+        if self.board.solved():
+            print("Solution found!")
+        
+        print("Final board:")
+        self.print_board()
+        
+        print(f"# Calls to solve_square:{self.calls_to_solve_square}, # Calls to solve_box:{self.calls_to_solve_box}")

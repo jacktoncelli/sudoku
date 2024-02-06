@@ -1,4 +1,8 @@
+from OldSudokuSolver import OldSudokuSolver
+
+from SudokuBoard import SudokuBoard
 from SudokuSolver import SudokuSolver
+
 
 completeboard = [
     [1, 2, 3, 4, 5, 6, 7, 8, 9],
@@ -69,7 +73,15 @@ hard2 = [
     [0, 4, 0, 0, 0, 2, 3, 0, 0],
     [6, 0, 8, 0, 0, 5, 0, 0, 1]
 ]
-ss = SudokuSolver(hard2)
 
-# print(ss.solveCell(3, 7))
-ss.solveBoard()
+easy_board = SudokuBoard(easy)
+easy_solver = SudokuSolver(easy_board)
+medium_board = SudokuBoard(medium)
+medium_solver = SudokuSolver(medium_board)
+# able to solve with row/column elimination^
+
+hard_board = SudokuBoard(hard)
+hard_solver = SudokuSolver(hard_board)
+# unable to solve with row/column elimination^
+
+easy_board.print_board()
