@@ -82,4 +82,4 @@ hard_board = SudokuBoard(hard)
 hard_solver = SudokuSolver(hard_board)
 # unable to solve with row/column elimination^
 
-easy_board.print_board()
+hard_solver.solve_board()

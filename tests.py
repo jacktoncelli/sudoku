@@ -312,6 +312,27 @@ class TestSudokuSolverMethods(unittest.TestCase):
         self.assertTrue(update_box_3)
         self.assertEqual(temp_solver.get_square(row=5, col=1), 2)
         
+    def test_pair_elimination(self):
+        temp_board = [
+            [0, 0, 0, 0, 0, 0, 1, 2, 0],
+            [6, 5, 4, 0, 0, 0, 0, 0, 0],
+            [0, 0, 3, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0]
+        ]
+        temp_solver = SudokuSolver(SudokuBoard(temp_board))
+        
+        self.assertEqual(temp_solver.pair_elimination(boxNum=0, target_num=7),
+                         [(0, 0), (0, 1), (0, 2)])
+        self.assertEqual(temp_solver.pair_elimination(boxNum=0, target_num=8),
+                         [(0, 0), (0, 1), (0, 2)])
+        self.assertEqual(temp_solver.pair_elimination(boxNum=0, target_num=9),
+                         [(0, 0), (0, 1), (0, 2)])
+        
     
 if __name__ == '__main__':
     unittest.main()
