@@ -1,136 +1,87 @@
 # sudoku
-An AI using an inference loop to solve sudoku puzzles
+A rules-engine AI model using logical inference to solve sudoku puzzles
 
 ----------------
 
-### Intro January 23, 2023
+### Introduction
 
-I undertook this as a personal project for fun. I don't have very much experience building AIs, but I thought sudoku would be a simple enough example that I could handle it. I also wanted to try out a bigger project with Python, as I use primarily Java for other personal projects. 
+This project was built with the intention of being able to easily scale it's logical capabilites, and to challenge myself to find more and more ways to solve sudoku puzzles. The original code dates back to when I was in high school, but I've rewritten it after my first semester in college to produce more readable, clean, and less redundant code and apply the design principles that I have been learning in college. I've also since created a test suite to help with development and debugging. 
 
-Here is a summary of my code's current methods:
+If you would like to understand what methods I have, and what they are for, feel free to look at the code directly. I've included docstrings on every method, and the majority of the methods are very simple and obvious, with a few exceptions. If you have any questions about how they work or suggestions to improve any part of this project, please feel free to reach out to me.
 
-```python
-def print_board(self):
-  # prints the current board nicely formatted
-  # has no return value
-  
-def solved(self):
-  # returns True if the board is full and correctly solved
-  
-def correct(self):
-  # returns True if the board follows all the rules of sudoku
-  
-def checkCol(self, col):
-  # 0 <= col <= 8
-  # returns a list of the numbers not present in col
-  
-def checkRow(self, row):
-  # 0 <= row <= 8
-  # returns a list of numbers not present in row
+Instead of just explaining the prupose statements of everything I have so far(which again, is availible in the code), I'm going to explain the structure of my code and the current logical capabilities. 
 
-def checkBox(self, boxNum):
-  # 0 <= boxNum <= 8
-  # returns a list of numbers not present in the box boxNum
-  
-def common_member(self, a, b):
-  # a and b are two lists
-  # returns a new list of numbers found in both a and b
-  
-def canPlace(self, row, col, cell):
-  # returns True if cell can legally be placed at (row, col)
-  
-def getBoxNum(self, row, col):
-  # returns the box number that (row, col) is within
-  # returns -1 if (row, col) is invalid
-  
-def getPossibleNums(self, row, col):
-  # returns a list of the possible numbers that could be placed at (row, col)
-  
-def getPossibleRows(self, num, boxNum):
-  # returns a list of the possible rows within box boxNum that num could be placed at 
-  
-def getPossibleCols(self, num, boxNum):
-  # returns a list of the possible columns within box boxNum that num could be placed at 
+<hr>
 
-def getPossiblePlacement(self, num, boxNum):
-  # returns a list of tuples of (row, col) where num can be placed at within box boxNum
-  
-def solveCell(self, row, col):
-   # attempts to find a solution for row, col
-   # if it cannot find a solution, it will look for other solutions within whatever box (row, col) is in
-   # returns whatever number it places
-   
-def solveBoard(self):
-  # attempts to solve the board using logic
-  # if the logic is not enough to solve, it will make guesses
-  # returns either the solved board or None if it fails
-  
-def make_guess(self, row, col, num, board):
-  # driver code for making a guess
-  # makes a guess of placing num at (row, col)
-  # makes a copy of the board in case it is incorrect
-  # returns either the solved board or None if it fails
-```
+### Structure
 
-At the moment, my AI can solve easy or medium ranked puzzles(the scale coming from a sudoku book I have), but when it comes to hard or expert puzzles, it hits a roadblock. The code is functional with the caveat that it isn't realistic on your average computer. 
+There are two main classes in this project, **SudokuBoard** and **SudokuSolver**. 
 
-My algorithm isn't able to make enough conclusions using the information availible, so it is forced to make guesses, which pulls it into the rabbit hole of sudoku's 6 sextillion possible boards. Put briefly, when unable to make a guarenteed move, the program will test out a number at a position to see if the puzzle can be solved with that position. This test only leads to more positions where it cannot make a definite conclusion, and so it guesses again, ad infinitem until it either breaks the rules of sudoku or finds a solution. Logically, this approach guarentees success, but you would probably need a quantum computer or portion of America's defense budget to support the memory usage. My laptop doesn't even scratch the surface. Of course, my algorithm is only making educated guesses, but even if it narrows the combinations down to a few quadrillion, thats not much better. 
+**SudokuBoard** is meant to update the internal representation of the puzzle and provide various forms of information about it when asked. For this reason, a majority of the methods of **SudokuBoard** do not seem to do much in terms of logical inference, although when the information is utilized correctly, it becomes quite simple. Some examples of the information that the **SudokuBoard** methdos provide include the current value of a given square, the numbers that are yet to be filled in a given box, etc. 
 
-To reduce the need of these educated guesses, I plan to implement logical inferences based on the possible positions of numbers on the board. Here is an example of where I want my computer to be able to make an inference:
+**SudokuSolver** is the class which collects the information about the board and uses it to draw conclusions about the board. For any given square on the board there is one definite solution, and it is up to the solver to find it. In order to do so, the various logical techniques, which are described below, are employed. Once the solver has either solved the board, found that it is unsolvable (i.e., breaks the rules of sudoku), or exhausted every logical technique and is unable to go further, it stops. In previous iterations of the project I had built in a guessing framework which makes an educated guess as to what a square _could_ be and tries it until it either solves it or breaks the rules. However, in rewriting the code, I found this to be a lazy and kind of sloppy decision, although it is effective. I would rather build in more advanced logical capabilites than resort to the obvious solution, as I consider the former to be more challenging and educational. I may eventually rewrite the guessing framework for the sake of it, once I'm satisfied with the other aspects of the AI. 
 
-Note: 0 represents an empty square
+<hr>
+
+### Logical Techniques
+
+#### Standard
+
+The first technique is the route that many people take when initially playing sudoku. In every row, column, and box, each number from 1-9 must appear exactly once. So, if you check the numbers that are not yet found in the row, column, and box of a given square, and if there happens to be only one that isn't found in any of the three, than that is guaranteed to be the solution for that square. 
+
+Below is an example: (a 0 represents an empty square)
 
 ```md
- Y  Y  Y   0  0  0   0  D  0
- 2  3  1   0  0  0   0  X  0
- 0  0  0   0  5  0   0  0  0 
+
+    7  0  0     0  0  0     0  6  3
+    0  0  2     6  7  3     4  0  0
+    0  4  0     0  0  0     0  0  0
 
 
- 0  0  0   0  0  0   0  0  5
- 0  0  0   0  0  0   0  0  0
- 0  0  0   0  0  0   0  0  0
+    0  3  9     0  0  0     2  0  1
+    5  7  4     0  2  0     0  0  0
+    0  X  1     0  0  5     8  7  0
 
 
- 0  0  0   0  0  0   5  0  0
- 0  0  0   0  0  0   0  0  0
- 0  0  0   0  0  0   0  0  0
+    1  8  0     2  6  0     0  3  0
+    0  0  0     0  0  7     0  2  8
+    0  6  0     0  9  0     1  0  0
 ```
-Now, as this is a mostly empty board, there are tons of possible solutions to this, but I want to focus on the inference possible in finding where the 5 goes in box 3, or the top right box. By observing the other 5s on the board, my AI can conclude that a 5 can either be placed at X or D. You can make the inference that in box 1 (the top left box), 5 must be placed in the top row as it cannot be in the bottom or middle rows. Therefore, it can be concluded with absolute certainty that the 5 is placed at X.
+On the board above, X is at row 5 and column 1 (0-indexed). X currently does not have a solution. 
 
-I have not decided how I am going to implement this yet, but I believe that this logic will largely eliminate the need for my systematic guessing system as it is. Even if it is still required for harder problems, it's combinations should be greatly reduced and the algorithm may be realistic to run on an average computer.
+All the possible values for X are [1, 2, 3, 4, 5, 6, 7, 8, 9].
 
-My goal is to eliminate the need to guess altogether by building up the logic. No person playing sudoku makes guesses -- they just figure it out. I am absolutely open to suggestions on improving my working code or implementing the new logic - please reach out with any ideas!
+The values that already appear in row 5 already are [1, 5, 7, 8]. Removing these from the possible values for X leaves [2, 3, 4, 6, 9].
 
+The values that already appear in column 1 are [3, 4, 6, 7, 8]. Removing these from the possible values for X leaves [2, 9].
 
-------------------------
+The values that already appear in box 4 (middle left box) are [1, 3, 4, 5, 7, 9]. Removing these from the possible values for X leaves [2].
 
-### Update January 24, 2023
+Since there is only one number that hasn't appeared in the row, column, and box of X, the solution _must_ be 2. 
 
-At the moment the AI is forced to make 4-5 guesses on expert puzzles and 2-3 guesses on hard puzzles. These are resolved fairly quickly due to the upgraded logical capabilities, but my goal is still to never have to guess. 
+#### Row-column elimination
 
-I have implemented the above described logic. The AI now is capable of reaching conclusions given information such as the board above. However, it still gets stuck sometimes and is forced to guess. The guess is also more likely to succeed, because conclusions are drawn much more reliably. At the board below, the AI had to guess, but was able to find a solution fairly quickly. Here is an example:
+For a number that does not yet appear in a box, there are between 1-9 possible positions where it can be placed in that box. However, if it can only be placed in one row or one column, then that means that in the boxes around it, that number cannot be placed in the same row or column. Furthermore, if the number is already placed in adjacent boxes, then it cannot be placed in the same row or column as in the other boxes. That is why I call this method row-column elimination, because it eliminates a row where a given number can be placed from the possible positions. While standard logic focuses on what a square could be, row-column elimination finds where the numbers must be, knowing that it has to appear in every box.
+
+Below is an example illustrating how this technique works: (a 0 represents an empty square)
 
 ```md
-    7  0  4     9  0  0     6  0  8 
-    0  0  9     8  0  0     0  3  0 
-    0  0  6     2  7  0     0  9  0 
+
+    7  0  0     0  0  0     0  6  3
+    0  0  2     6  7  3     4  0  0
+    0  4  0     0  0  0     0  0  0
 
 
-    9  0  0     5  0  8     0  0  2 
-    C  6  0     0  2  9     0  5  3 
-    4  A  B     0  0  7     0  0  9 
+    0  3  9     0  0  0     2  0  1
+    5  7  4     0  2  0     X  0  0
+    0  0  1     0  0  5     8  7  0
 
 
-    0  7  0     0  8  0     9  0  0 
-    0  4  0     0  9  2     3  8  0 
-    6  9  8     0  0  5     0  0  1 
-
+    1  8  0     2  6  0     0  3  0
+    0  0  0     0  0  7     0  2  8
+    0  6  0     0  9  0     1  0  0
 ```
 
-The AI has filled in several squares (10 to be exact), but cannot reach a definite conclusion in this situation. If I had to solve this puzzle, I would (hopefully) notice squares A and B. In box 4 (left middle box), there obviously needs to be a 2 and a 5. Both 2 and 5 can ONLY go in either A or B. This means that no OTHER number can go in A or B, allowing you to make conclusions, including that an 8 is played at C. 
+X is the square at row 4 and column 6 (0-indexed). Standard logic (above) will not be able to find a solution for this square, as the possible values are only reduced to [3, 6, 9]. 
 
-I have alos thought of a new way to test my AI. I give it a completely empty board and have it try to solve it. The smaller number of guesses, the more powerful the logical capabilites are. With the current logic, the code ran for about 10 minutes with thousands of guesses before I gave up on getting a real answer (I remebered the scary 6 sextillion number, even though it will solve it in theory) 
-
-This is the next step I want to take to make my AI smarter. I expect this to be a significant challenge, but I have some ideas on how to implement this. Like always, feel free to suggest improvements to my current code or ideas for my next challenge. 
-
---------------------------
+However, if you look at the rows where 3 can be placed within box 5 (right middle box), you will notice the 3 already placed
