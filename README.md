@@ -3,7 +3,7 @@ A rules-engine AI model using logical inference to solve sudoku puzzles
 
 ----------------
 
-### Introduction
+## Introduction
 
 This project was built with the intention of being able to easily scale it's logical capabilites, and to challenge myself to find more and more ways to solve sudoku puzzles. The original code dates back to when I was in high school, but I've rewritten it after my first semester in college to produce more readable, clean, and less redundant code and apply the design principles that I have been learning in college. I've also since created a test suite to help with development and debugging. 
 
@@ -13,7 +13,7 @@ Instead of just explaining the prupose statements of everything I have so far(wh
 
 <hr>
 
-### Structure
+## Structure
 
 There are two main classes in this project, **SudokuBoard** and **SudokuSolver**. 
 
@@ -21,11 +21,40 @@ There are two main classes in this project, **SudokuBoard** and **SudokuSolver**
 
 **SudokuSolver** is the class which collects the information about the board and uses it to draw conclusions about the board. For any given square on the board there is one definite solution, and it is up to the solver to find it. In order to do so, the various logical techniques, which are described below, are employed. Once the solver has either solved the board, found that it is unsolvable (i.e., breaks the rules of sudoku), or exhausted every logical technique and is unable to go further, it stops. In previous iterations of the project I had built in a guessing framework which makes an educated guess as to what a square _could_ be and tries it until it either solves it or breaks the rules. However, in rewriting the code, I found this to be a lazy and kind of sloppy decision, although it is effective. I would rather build in more advanced logical capabilites than resort to the obvious solution, as I consider the former to be more challenging and educational. I may eventually rewrite the guessing framework for the sake of it, once I'm satisfied with the other aspects of the AI. 
 
+I will refer to box numbers, row numbers, and column numbers throughout this documentation, so here is a reference on how the numbering system works:
+
+```md
+
+Box number:
+
+    0 | 1 | 2
+    ---------
+    3 | 4 | 5
+    ---------
+    6 | 7 | 8
+
+Row/column number:
+
+Row increments going down, column increments going right.
+
+       | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+     0 |   |   |   |   |   |   |   |   |   |
+     1 |   |   |   |   |   |   |   |   |   |
+     2 |   |   |   |   |   |   |   |   |   |
+     3 |   |   |   |   |   |   |   |   |   |
+     4 |   |   |   |   |   |   |   |   |   |
+     5 |   |   |   |   |   |   |   |   |   |
+     6 |   |   |   |   |   |   |   |   |   |
+     7 |   |   |   |   |   |   |   |   |   |
+     8 |   |   |   |   |   |   |   |   |   |
+
+```
+
 <hr>
 
-### Logical Techniques
+## Logical Techniques
 
-#### Standard
+### Standard
 
 The first technique is the route that many people take when initially playing sudoku. In every row, column, and box, each number from 1-9 must appear exactly once. So, if you check the numbers that are not yet found in the row, column, and box of a given square, and if there happens to be only one that isn't found in any of the three, than that is guaranteed to be the solution for that square. 
 
@@ -47,7 +76,7 @@ Below is an example: (a 0 represents an empty square)
     0  0  0     0  0  7     0  2  8
     0  6  0     0  9  0     1  0  0
 ```
-On the board above, X is at row 5 and column 1 (0-indexed). X currently does not have a solution. 
+On the board above, X is at row 5 and column 1. X currently does not have a solution. 
 
 All the possible values for X are [1, 2, 3, 4, 5, 6, 7, 8, 9].
 
@@ -59,9 +88,9 @@ The values that already appear in box 4 (middle left box) are [1, 3, 4, 5, 7, 9]
 
 Since there is only one number that hasn't appeared in the row, column, and box of X, the solution _must_ be 2. 
 
-#### Row-column elimination
+### Row-column elimination
 
-For a number that does not yet appear in a box, there are between 1-9 possible positions where it can be placed in that box. However, if it can only be placed in one row or one column, then that means that in the boxes around it, that number cannot be placed in the same row or column. Furthermore, if the number is already placed in adjacent boxes, then it cannot be placed in the same row or column as in the other boxes. That is why I call this method row-column elimination, because it eliminates a row where a given number can be placed from the possible positions. While standard logic focuses on what a square could be, row-column elimination finds where the numbers must be, knowing that it has to appear in every box.
+For a number that does not yet appear in a box, there are between 1-9 possible positions where it can be placed in that box. However, if it can only be placed in one row or one column, then that means that in the boxes around it, that number cannot be placed in the same row or column. Furthermore, if the number is already placed in adjacent boxes, then it cannot be placed in the same row or column as in the other boxes. That is why I call this method row-column elimination, because it eliminates a row where a given number can be placed from the possible positions. While standard logic focuses on what a given square could be, row-column elimination finds where the numbers must be, knowing that it has to appear in every box.
 
 Below is an example illustrating how this technique works: (a 0 represents an empty square)
 
@@ -82,6 +111,14 @@ Below is an example illustrating how this technique works: (a 0 represents an em
     0  6  0     0  9  0     1  0  0
 ```
 
-X is the square at row 4 and column 6 (0-indexed). Standard logic (above) will not be able to find a solution for this square, as the possible values are only reduced to [3, 6, 9]. 
+X is the square at row 4 and column 6. Standard logic will not be able to find a solution for this square, as the possible values are only reduced to [3, 6, 9]. We now have to narrow down the options and find which value is correct. 
 
-However, if you look at the rows where 3 can be placed within box 5 (right middle box), you will notice the 3 already placed
+Let's first list the possible placements for a 3 in box 5. In the format (row, column), that leaves [(3, 7), (4, 6), (4, 7), (4, 8), (5, 8)], since we haven't eliminated any possibilities yet. 
+
+However, if you look at the rows where 3 can be placed within box 5, you will notice a 3 already placed in box 3 at (3, 2). This means that in box 5, we cannot place a 3 in the same row. So our updated list is [(4, 6), (4, 7), (4, 8), (5, 8)] after removing (3, 7) which has the same row as (3, 2).
+
+Now let's look at the columns. After checking above in box 2, we see a 3 placed at (1, 8). So in box 5, we cannot place a 3 in column 8, so we can update our list of possible placements to [(4, 6), (4, 7)]. 
+
+Looking below at box 8, we see a 3 placed at (6, 7), so we can similarly eliminate (4, 7) from our possible placements, leaving only [(4, 6)]. Thus, we have concluded that a 3 must be placed at (4, 6), where X is, as no other square in box 5 can have a 3. 
+
+<hr>
