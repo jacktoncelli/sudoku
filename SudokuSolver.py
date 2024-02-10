@@ -122,8 +122,6 @@ class SudokuSolver:
         possible_placements([(int, int)]) - a list of possible placements for target_num
         """
         missing_nums = self.board.missing_from_box(boxNum)
-        if target_num not in missing_nums:
-            return []
         missing_nums.remove(target_num)
         
         possible_placements = self.board.possible_placements_in_box(boxNum=boxNum, num=target_num)
@@ -152,7 +150,7 @@ class SudokuSolver:
     def row_column_elimination(self, boxNum, target_num):
         """
         Given a box number and a target number, will find the possible placements in the box for 
-        the target number using row/column elimination
+        the target number and reduce them using row/column elimination
         
         Parameters:
         boxNum(int) - 0 <= boxNum <= 8, where 0 is top left box, 8 is bottom right box, and box number increments left-right first
@@ -165,30 +163,15 @@ class SudokuSolver:
                 
         horiz_adj_boxes = self.horizontally_adjacent_boxes(boxNum=boxNum)
         # row elimination
-        
-        # first eliminate the definite rows from possible_placements
-        for h_adj_box in horiz_adj_boxes:
-            possible_rows_other = self.board.possible_row_placements_in_box(num=target_num, boxNum=h_adj_box)
-            
-            # then it is known that in another box, num will go in this row, so it cannot go there in this box
-            if len(possible_rows_other) == 1:
-                for (possible_row, possible_col) in possible_placements:
-                    to_remove = []
-                    if len(possible_placements) > 0 and possible_row == possible_rows_other[0]:
-                        to_remove.append((possible_row, possible_col))
-                    for i in range(len(to_remove)):
-                        possible_placements.remove(to_remove[i])
                 
-        possible_rows_horiz = set()
-        # in case the other two rows have narrowed the certainty down to two rows total, 
-        # that would want to be removed form possible_placements as well
+        possible_rows_horiz = {}
         for h_adj_box in horiz_adj_boxes:
             possible_rows_horiz = possible_rows_horiz.union(
                 self.board.possible_row_placements_in_box(num=target_num, boxNum=h_adj_box))
             
         possible_rows_horiz = list(possible_rows_horiz)
-        # if there were 3 possible rows in the other two boxes, 
-        # no conclusions would be able to be drawn
+        # there are only three possible rows in the horizontally adjacent boxes for num to appear
+        # so if there are not three, then there are less than three, and they can be removed from possible placements
         if len(possible_rows_horiz) != 3:
             # remove the coordinates from possible_placements in the rows 
             # that match the possible rows of the horizontally adjacent boxes
@@ -203,19 +186,6 @@ class SudokuSolver:
         # column elimination
         vert_adj_boxes = self.vertically_adjacent_boxes(boxNum=boxNum)
         
-        # first eliminate the definite columns from possible_placements
-        for v_adj_box in vert_adj_boxes:
-            possible_cols_other = self.board.possible_col_placements_in_box(num=target_num, boxNum=h_adj_box)
-            
-            # then it is known that in another box, num will go in this col, so it cannot go there in this box
-            if len(possible_cols_other) == 1:
-                for (possible_row, possible_col) in possible_placements:
-                    to_remove = []
-                    if len(possible_placements) > 0 and possible_col == possible_cols_other[0]:
-                        to_remove.append((possible_row, possible_col))
-                    for i in range(len(to_remove)):
-                        possible_placements.remove(to_remove[i])
-        
         possible_cols_vert = set()
         # find the possible columns for num in the vertically adjacent boxes
         for v_adj_box in vert_adj_boxes:
@@ -224,8 +194,8 @@ class SudokuSolver:
             )
             
         possible_cols_vert = list(possible_cols_vert)
-        # if there were 3 possible columns in the vertically adjacent boxes
-        # then no conclusions can be drawn
+        # there are only three possible columns in the vertically adjacent boxes for num to appear
+        # so if there are not three, then there are less than three, and they can be removed from possible placements
         if len(possible_cols_vert) != 3:
             # remove the coordinates from possible_placements in the columns
             # that match the possible columns of the horizontally adjacent boxes
@@ -238,47 +208,6 @@ class SudokuSolver:
                     possible_placements.remove(to_remove[i])
  
         return possible_placements
-            
-            
-    
-    def solve_box_row_column_elimination(self, boxNum):
-        """
-        Given a box number from 0-8, tries to solve each unsolved sqaure in the box
-        using row/column elimination logical inference
-        Will leave unsolved squares as 0.
-        
-        Parameters:
-        boxNum(int) - 0 <= boxNum <= 8, where 0 is top left box, 8 is bottom right box, and box number increments left-right first
-        
-        Returns:
-        updated(boolean) - True if any changes were made, false otherwise
-        """
-        
-        updated = True
-
-        missing_nums = self.board.missing_from_box(boxNum)
-        
-        
-        while updated and self.board.valid() and not self.board.solved():
-            updated = False
-            for num in missing_nums:
-                possible_placements_in_box_rc = self.row_column_elimination(boxNum=boxNum, target_num=num)
-                possible_placements_in_box_pair = self.pair_elimination(boxNum=boxNum, target_num=num)
-            
-                
-                if not possible_placements_in_box_rc:
-                    possible_placements = possible_placements_in_box_pair
-                elif not possible_placements_in_box_pair:
-                    possible_placements = possible_placements_in_box_rc
-                else:  
-                    possible_placements = list(set(possible_placements_in_box_rc).intersection(set(possible_placements_in_box_pair)))
-                # if there is only one remaining possible placement for num, 
-                # then a unique solution has been found and the square can be updated
-                if len(possible_placements) == 1:
-                    self.board.change_square(row=possible_placements[0][0], col=possible_placements[0][1], newVal=num)
-                    updated = True
-            
-        return updated
         
     def solve_box(self, boxNum):
         """
@@ -310,7 +239,25 @@ class SudokuSolver:
                         updated = True
                         standard_logic_updated = True
         
-        self.solve_box_row_column_elimination(boxNum=boxNum)
+        elimination_logic_updated = True
+                        
+        while elimination_logic_updated and self.board.valid() and not self.board.solved():
+            elimination_logic_updated = False
+            missing_nums = self.board.missing_from_box(boxNum)
+            for num in missing_nums:
+                possible_placements_in_box_rc = self.row_column_elimination(boxNum=boxNum, target_num=num)
+                # get the possible placements for num using row/column elimination
+                possible_placements_in_box_pair = self.pair_elimination(boxNum=boxNum, target_num=num)
+                # get the possible placements for num using pair elimination
+
+                possible_placements = list(set(possible_placements_in_box_rc).intersection(set(possible_placements_in_box_pair)))
+                
+                # if there is only one remaining possible placement for num, 
+                # then a unique solution has been found and the square can be updated
+                if len(possible_placements) == 1:
+                    self.board.change_square(row=possible_placements[0][0], col=possible_placements[0][1], newVal=num)
+                    updated = True
+                    elimination_logic_updated = True
                     
         return updated
     

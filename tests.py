@@ -287,30 +287,12 @@ class TestSudokuSolverMethods(unittest.TestCase):
         self.assertTrue(update_3_4)
         self.assertEqual(temp_solver.get_square(row=3, col=4), 4)
         
-    def test_solve_box_row_column_elimination(self):
-        temp_solver = SudokuSolver(SudokuBoard(copy.deepcopy(self.board_array)))
-        
-        # using row/column elimination, it can fill in 2 squares in box 0
-        update_box_0 = temp_solver.solve_box_row_column_elimination(boxNum=0)
-        self.assertTrue(update_box_0)
-        self.assertEqual(temp_solver.get_square(row=0, col=2), 8)
-        self.assertEqual(temp_solver.get_square(row=2, col=2), 6)
-        
-        # it can fill in 1 square in box 1
-        update_box_1 = temp_solver.solve_box_row_column_elimination(boxNum=1)
-        self.assertTrue(update_box_1)
-        self.assertEqual(temp_solver.get_square(row=0, col=5), 2)
-        
-        # it can fill in 2 squares in box 2
-        update_box_2 = temp_solver.solve_box_row_column_elimination(boxNum=2)
-        self.assertTrue(update_box_2)
-        self.assertEqual(temp_solver.get_square(row=1, col=7), 8)
-        self.assertEqual(temp_solver.get_square(row=2, col=8), 2)
-        
-        # it can fill in 1 squares in box 3
-        update_box_3 = temp_solver.solve_box_row_column_elimination(boxNum=3)
-        self.assertTrue(update_box_3)
-        self.assertEqual(temp_solver.get_square(row=5, col=1), 2)
+    def test_row_column_elimination(self):
+        # using row/column elimination, it can reduce the possible placements for 8 in box 0 to [(0, 2), (2, 2)]
+        self.assertEqual(self.ex_solver.row_column_elimination(boxNum=0, target_num=8), [(0, 2), (2, 2)])
+        self.assertEqual(self.ex_solver.row_column_elimination(boxNum=0, target_num=6), [(2, 2)])        
+
+        self.assertEqual(self.ex_solver.row_column_elimination(boxNum=5, target_num=3), [(4, 6)])
         
     def test_pair_elimination(self):
         temp_board = [
