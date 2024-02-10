@@ -293,6 +293,7 @@ class TestSudokuSolverMethods(unittest.TestCase):
         self.assertEqual(self.ex_solver.row_column_elimination(boxNum=0, target_num=6), [(2, 2)])        
 
         self.assertEqual(self.ex_solver.row_column_elimination(boxNum=5, target_num=3), [(4, 6)])
+        # TODO: write more tests here and tests for other methods
         
     def test_pair_elimination(self):
         temp_board = [

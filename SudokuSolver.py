@@ -166,46 +166,71 @@ class SudokuSolver:
                 
         possible_rows_horiz = {}
         for h_adj_box in horiz_adj_boxes:
-            possible_rows_horiz = possible_rows_horiz.union(
-                self.board.possible_row_placements_in_box(num=target_num, boxNum=h_adj_box))
+            possible_rows_horiz[h_adj_box] = self.board.possible_row_placements_in_box(num=target_num, boxNum=h_adj_box)
             
-        possible_rows_horiz = list(possible_rows_horiz)
-        # there are only three possible rows in the horizontally adjacent boxes for num to appear
-        # so if there are not three, then there are less than three, and they can be removed from possible placements
-        if len(possible_rows_horiz) != 3:
-            # remove the coordinates from possible_placements in the rows 
-            # that match the possible rows of the horizontally adjacent boxes
-            for removable_row in possible_rows_horiz:
-                to_remove = []
-                for (possible_row, possible_col) in possible_placements:
-                    if len(possible_placements) > 0 and possible_row == removable_row:
-                        to_remove.append((possible_row, possible_col))
-                for i in range(len(to_remove)):
-                    possible_placements.remove(to_remove[i])
+        # there are 2 horizontally adjacent boxes ALWAYS, call them A and B
+        # possibilities that allow for inference / placement removal
+        # A has 1 possible row - remove that row from possible_placements
+        # B has 1 possible row - remove that row from possible_placements
+        # A and B have 2 possible rows and they are the same - remove those two rows from possible placements
+        
+        rows_to_remove = []
+        # A has 1 possible row
+        if len(possible_rows_horiz[horiz_adj_boxes[0]]) == 1:
+            rows_to_remove.append(possible_rows_horiz[horiz_adj_boxes[0]][0])
+            
+        # B has 1 possible row
+        if len(possible_rows_horiz[horiz_adj_boxes[1]]) == 1:
+            rows_to_remove.append(possible_rows_horiz[horiz_adj_boxes[1]][0])
+            
+        # A and B have 2 possible rows and they are the same
+        if len(possible_rows_horiz[horiz_adj_boxes[0]]) == 2 and len(possible_rows_horiz[horiz_adj_boxes[1]]) == 2 and possible_rows_horiz[horiz_adj_boxes[0]] == possible_rows_horiz[horiz_adj_boxes[1]]:
+            for removable_row in possible_rows_horiz[horiz_adj_boxes[0]]:
+                rows_to_remove.append(removable_row)
+        
+        for row_to_remove in rows_to_remove:
+            to_remove = []
+            for (possible_row, possible_col) in possible_placements:
+                if len(possible_placements) > 0 and possible_row == row_to_remove:
+                    to_remove.append((possible_row, possible_col))
+            for i in range(len(to_remove)):
+                possible_placements.remove(to_remove[i])
                     
         # column elimination
         vert_adj_boxes = self.vertically_adjacent_boxes(boxNum=boxNum)
         
-        possible_cols_vert = set()
+        possible_cols_vert = {}
         # find the possible columns for num in the vertically adjacent boxes
         for v_adj_box in vert_adj_boxes:
-            possible_cols_vert = possible_cols_vert.union(
-                self.board.possible_col_placements_in_box(num=target_num, boxNum=v_adj_box)
-            )
+            possible_cols_vert[v_adj_box] = self.board.possible_col_placements_in_box(num=target_num, boxNum=v_adj_box)
             
-        possible_cols_vert = list(possible_cols_vert)
-        # there are only three possible columns in the vertically adjacent boxes for num to appear
-        # so if there are not three, then there are less than three, and they can be removed from possible placements
-        if len(possible_cols_vert) != 3:
-            # remove the coordinates from possible_placements in the columns
-            # that match the possible columns of the horizontally adjacent boxes
-            for removeable_col in possible_cols_vert:
-                to_remove = []
-                for (possible_row, possible_col) in possible_placements:
-                    if len(possible_placements) > 0 and possible_col == removeable_col:
-                        to_remove.append((possible_row, possible_col))
-                for i in range(len(to_remove)):
-                    possible_placements.remove(to_remove[i])
+        # there are 2 vertically adjacent boxes ALWAYS, call them A and B
+        
+        # these are the possibilities that allow for inference / placement removal
+        #  - A has 1 possible col - remove that col from possible_placements
+        #  - B has 1 possible col - remove that col from possible_placements
+        #  - A and B have 2 possible cols and they are the same - remove those two cols from possible placements
+        cols_to_remove = []
+        # A has 1 possible row
+        if len(possible_cols_vert[vert_adj_boxes[0]]) == 1:
+            cols_to_remove.append(possible_cols_vert[vert_adj_boxes[0]][0])
+            
+        # B has 1 possible row
+        if len(possible_cols_vert[vert_adj_boxes[1]]) == 1:
+            cols_to_remove.append(possible_cols_vert[vert_adj_boxes[1]][0])
+            
+        # A and B have 2 possible rows and they are the same
+        if len(possible_cols_vert[vert_adj_boxes[0]]) == 2 and len(possible_cols_vert[vert_adj_boxes[1]]) == 2 and possible_cols_vert[vert_adj_boxes[0]] == possible_cols_vert[vert_adj_boxes[1]]:
+            for removable_row in possible_cols_vert[vert_adj_boxes[0]]:
+                cols_to_remove.append(removable_row)
+                
+        for col_to_remove in cols_to_remove:
+            to_remove = []
+            for (possible_row, possible_col) in possible_placements:
+                if len(possible_placements) > 0 and possible_col == col_to_remove:
+                    to_remove.append((possible_row, possible_col))
+            for i in range(len(to_remove)):
+                possible_placements.remove(to_remove[i])
  
         return possible_placements
         
