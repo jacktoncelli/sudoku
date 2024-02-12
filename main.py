@@ -1,5 +1,6 @@
 from SudokuBoard import SudokuBoard
 from SudokuSolver import SudokuSolver
+import time
 
 
 completeboard = [
@@ -82,4 +83,7 @@ hard_board = SudokuBoard(hard)
 hard_solver = SudokuSolver(hard_board)
 # unable to solve with row/column elimination^
 
+start_time_ms = time.time()  * 1000
 medium_solver.solve_board()
+end_time_ms = time.time() * 1000
+print(f"elapsed time(ms):{end_time_ms - start_time_ms}")

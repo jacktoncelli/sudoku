@@ -293,7 +293,11 @@ class TestSudokuSolverMethods(unittest.TestCase):
         self.assertEqual(self.ex_solver.row_column_elimination(boxNum=0, target_num=6), [(2, 2)])        
 
         self.assertEqual(self.ex_solver.row_column_elimination(boxNum=5, target_num=3), [(4, 6)])
-        # TODO: write more tests here and tests for other methods
+        self.assertEqual(self.ex_solver.row_column_elimination(boxNum=0, target_num=3), [(2, 0), (2, 2)])
+        self.assertEqual(self.ex_solver.row_column_elimination(boxNum=4, target_num=7), [(3, 3)])
+        self.assertEqual(self.ex_solver.row_column_elimination(boxNum=3, target_num=2), [(5, 1)])
+        
+        
         
     def test_pair_elimination(self):
         temp_board = [
@@ -315,6 +319,10 @@ class TestSudokuSolverMethods(unittest.TestCase):
                          [(0, 0), (0, 1), (0, 2)])
         self.assertEqual(temp_solver.pair_elimination(boxNum=0, target_num=9),
                          [(0, 0), (0, 1), (0, 2)])
+        self.assertEqual(temp_solver.pair_elimination(boxNum=0, target_num=1), 
+                         [(2, 0), (2, 1)])
+        self.assertEqual(temp_solver.pair_elimination(boxNum=0, target_num=2), 
+                         [(2, 0), (2, 1)])
         
     
 if __name__ == '__main__':
