@@ -9,7 +9,7 @@ This project was built with the intention of being able to easily scale it's log
 
 If you would like to understand what methods I have, and what they are for, feel free to look at the code directly. I've included docstrings on every method, and the majority of the methods are very simple and obvious, with a few exceptions. If you have any questions about how they work or suggestions to improve any part of this project, please feel free to reach out to me.
 
-Instead of just explaining the prupose statements of everything I have so far(which again, is availible in the code), I'm going to explain the structure of my code and the current logical capabilities. 
+I've provided a high-level overview of how I designed this code and how I approached it from a logical standpoint.
 
 <hr>
 
@@ -17,7 +17,7 @@ Instead of just explaining the prupose statements of everything I have so far(wh
 
 There are two main classes in this project, **SudokuBoard** and **SudokuSolver**. 
 
-**SudokuBoard** is meant to update the internal representation of the puzzle and provide various forms of information about it when asked. For this reason, a majority of the methods of **SudokuBoard** do not seem to do much in terms of logical inference, although when the information is utilized correctly, it becomes quite simple. Some examples of the information that the **SudokuBoard** methdos provide include the current value of a given square, the numbers that are yet to be filled in a given box, etc. 
+**SudokuBoard** is meant to update the internal representation of the puzzle and provide various forms of information about it when asked. For this reason, a majority of the methods of **SudokuBoard** do not seem to do much in terms of logical inference, although when the information is utilized correctly, it becomes quite simple. Some examples of the information that the **SudokuBoard** methods provide include the current value of a given square, the numbers that are yet to be filled in a given box, etc. 
 
 **SudokuSolver** is the class which collects the information about the board and uses it to draw conclusions about the board. For any given square on the board there is one definite solution, and it is up to the solver to find it. In order to do so, the various logical techniques, which are described below, are employed. Once the solver has either solved the board, found that it is unsolvable (i.e., breaks the rules of sudoku), or exhausted every logical technique and is unable to go further, it stops. In previous iterations of the project I had built in a guessing framework which makes an educated guess as to what a square _could_ be and tries it until it either solves it or breaks the rules. However, in rewriting the code, I found this to be a lazy and kind of sloppy decision, although it is effective. I would rather build in more advanced logical capabilites than resort to the obvious solution, as I consider the former to be more challenging and educational. I may eventually rewrite the guessing framework for the sake of it, once I'm satisfied with the other aspects of the AI. 
 
@@ -90,7 +90,7 @@ Since there is only one number that hasn't appeared in the row, column, and box 
 
 ### Row-column elimination
 
-For a number that does not yet appear in a box, there are between 1-9 possible positions where it can be placed in that box. However, if it can only be placed in one row or one column, then that means that in the boxes around it, that number cannot be placed in the same row or column. Furthermore, if the number is already placed in adjacent boxes, then it cannot be placed in the same row or column as in the other boxes. That is why I call this method row-column elimination, because it eliminates a row where a given number can be placed from the possible positions. While standard logic focuses on what a given square could be, row-column elimination finds where the numbers must be, knowing that it has to appear in every box.
+For a number that does not yet appear in a box, there are between 1-9 possible positions where it can be placed in that box. However, if it can only be placed in one row or one column, then that means that in the boxes around it, that number cannot be placed in the same row or column. Furthermore, if the number is already placed in adjacent boxes, then it cannot be placed in the same row or column as in the other boxes. That is why I call this method row-column elimination, because it eliminates a row where a given number can be placed from the possible positions. While standard logic focuses on what a given _square_ could be, row-column elimination finds where the _numbers_ must be, knowing that it has to appear in every box.
 
 Below is an example illustrating how this technique works: (a 0 represents an empty square)
 
@@ -120,5 +120,36 @@ However, if you look at the rows where 3 can be placed within box 5, you will no
 Now let's look at the columns. After checking above in box 2, we see a 3 placed at (1, 8). So in box 5, we cannot place a 3 in column 8, so we can update our list of possible placements to [(4, 6), (4, 7)]. 
 
 Looking below at box 8, we see a 3 placed at (6, 7), so we can similarly eliminate (4, 7) from our possible placements, leaving only [(4, 6)]. Thus, we have concluded that a 3 must be placed at (4, 6), where X is, as no other square in box 5 can have a 3. 
+
+### Pair Elimination
+
+In any given box, if 2 numbers can **only** be placed in the **same two squares**, then you can rule out all other numbers from those squares. This only applies if both numbers cannot be placed in any other square in the box using rules of elimination, and if the squares that they can be placed in are the same. This does not necessarily find a solution for those two squares, but it can lead to a solution elsewhere in the box by limiting where other numbers can be placed. 
+
+Below is an example showing when this applies: (a 0 represents an empty square)
+
+```md
+
+    7  0  0     0  0  0     0  6  3
+    0  0  2     6  7  3     4  0  0
+    A  4  B     0  0  0     0  0  0
+
+
+    0  3  9     0  0  0     2  0  1
+    5  7  4     0  2  0     0  0  0
+    0  0  1     0  0  5     8  7  0
+
+
+    1  8  0     2  6  0     0  3  0
+    0  0  0     0  0  7     0  2  8
+    0  6  0     0  9  0     1  0  0
+```
+
+A is the square at row 2, column 0. B is the square at row 2, column 2. Both are in box 0.
+
+If you look at where you can place 6 in box 0, you will narrow down your choices to [(2, 0), (2, 2)], or [A, B]. This is found by noticing the 6s placed at (1, 4) and (0, 7). 
+
+If you look at where you can place 3 in box 0, you will find the same results of [(2, 0), (2, 2)], or [A, B]. This is similarly found by noticing the 3s at (0, 8) and (1, 5).
+
+Therefore, either a 6 or 8 **must** be played at both A and B, because A and B are the only slots for both numbers. We do not yet know which square gets which number; however, we do know that no other number can be placed there. This allows us to reach new conclusions, such as the placement of 8. Previously, using row/column elimination and standard logic, 8 could be narrowed down to [(0, 2), (1, 0), (2, 0), (2, 2)]. Now, by elimination A and B from that list, we are left with [(0, 2), (1, 0)]. 
 
 <hr>
